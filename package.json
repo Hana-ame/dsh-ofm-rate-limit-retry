@@ -1,0 +1,17 @@
+{
+  "name": "ofm-rate-limit-retry",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "把 dsh-our-free-model 两条 provider 路线的重试策略改为包含 RATE_LIMIT（dsh 侧补丁，不改被补丁插件的字节）",
+  "main": "./index.js",
+  "exports": {
+    ".": "./index.js"
+  },
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    }
+  },
+  "license": "MIT"
+}

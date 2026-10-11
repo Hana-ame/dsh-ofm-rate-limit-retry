@@ -1,0 +1,31 @@
+# ofm-rate-limit-retry —— dsh-our-free-model 的 RATE_LIMIT 重试补丁
+#
+# 为什么需要它：dsh 取 provider 重试策略时用
+#   adapter.providerRetryPolicy(p) ?? resolveRetryPolicy(...)
+# （dsh-llm/lib/index.js:1867），`??` 只在适配器返回 undefined 时才回落到用户配置。
+# dsh-our-free-model 的适配器硬编码返回自己的策略并**刻意删掉了 RATE_LIMIT**
+# （上游 issue #13：这条车道的 429 带递增 retry-after，重试会把一堵配额墙变成三堵）。
+# 于是该路线成为全机唯一「429 即停止」的 provider，且 settings.yaml 里给它配的
+# retryPolicy 被静默吞掉、无任何提示——而 dsh 自身的默认码表本来就包含 RATE_LIMIT
+# （同文件 251-257 行），其余所有 provider 的配置也都生效。
+#
+# 本补丁只改写注册项里的 retryPolicy 字段（策略在注册那一刻被快照，调用时直接读它，
+# 同文件 2217 行；代理 providerRetryPolicy() 无效——实测过）。不碰被补丁插件的字节，
+# 其应用内升级通道（Ed25519 签名清单）保持可用。
+#
+# 字段为顶层扁平值：dsh 逐字取用本对象，嵌在 backoff 里会让退避延迟变 NaN。
+- insert:
+    - id: ofm-rate-limit-retry
+      name: 'ofm-rate-limit-retry'
+      config:
+        mode: normal
+        maxRetries: 3000
+        retryableCodes:
+          - EMPTY_RESPONSE
+          - RATE_LIMIT
+          - SERVER
+          - TIMEOUT
+          - TRANSPORT
+        initialDelayMs: 1000
+        maxDelayMs: 60000
+        jitterRatio: 0.2
