@@ -118,7 +118,7 @@ export function apply(ctx, config = {}) {
       // 注册项的 retryPolicy 是注册那一刻的快照，调用时直接读它（dsh-llm/lib/index.js:2217），
       // 所以要生效只能改这个字段本身。
       registration.retryPolicy = policy
-      ctx.logger.info(`ofm-rate-limit-retry: "${provider}" 的重试策略已改为包含 RATE_LIMIT（maxRetries=${policy.maxRetries}）`)
+      ctx.logger.info(`ofm-rate-limit-retry: "${provider}" 的重试策略已改为 ${policy.retryableCodes.join('/')}（maxRetries=${policy.maxRetries}）`)
     }
   }
 
