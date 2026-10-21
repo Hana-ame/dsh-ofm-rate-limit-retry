@@ -39,16 +39,28 @@
  *    都要处理：先扫一遍已有注册项，再监听 `llm/adapters-updated` 补上后来注册的。
  *
  * 被补丁的插件目录一个字节都不改，其应用内升级通道（Ed25519 签名清单）保持可用。
- * 策略值来自本插件自己的 config（写在 profile 的 cordis patch 层），缺省时用
+ * 策略值来自本插件自己的 config（写在本 bundle 的 cordis.patch.yml），缺省时用
  * dsh 的默认码表 + 与用户其余 provider 对齐的退避档位。
+ *
+ * ## UNKNOWN（2026-10-22 追加）
+ *
+ * 在 dsh 默认码表之外额外重试 `UNKNOWN`。这个码不是 dsh 的默认可重试码：它由
+ * `normalizeLlmFailure()` 给「非 HarnessError 的抛出物 / 无法识别类别的错误」兜底
+ * （`dsh-llm/lib/index.js` 的 `harnessErrorCode()`：`error instanceof HarnessError
+ * ? error.code : "UNKNOWN"`），也就是适配器边界上那些没有被分类到具体码的失败。
+ * 它通常瞬时（网关抖动、代理返回非标准错误体），因此纳入重试；代价是持续性的
+ * 未知失败也会一直重试到 maxRetries 用尽（本配置约两天）。
  *
  * @module ofm-rate-limit-retry
  */
 
 const ROUTES = ['our-free-model', 'our-free-model-region']
 
-/** 与 dsh 自身默认码表一致（dsh-llm/lib/index.js:251-257）。 */
-const DEFAULT_RETRYABLE_CODES = ['EMPTY_RESPONSE', 'RATE_LIMIT', 'SERVER', 'TIMEOUT', 'TRANSPORT']
+/**
+ * dsh 自身默认码表（dsh-llm/lib/index.js:251-257）+ UNKNOWN 兜底码。
+ * UNKNOWN 不是 dsh 默认码：它由 normalizeLlmFailure 对未分类抛出物兜底，见文件头。
+ */
+const DEFAULT_RETRYABLE_CODES = ['EMPTY_RESPONSE', 'RATE_LIMIT', 'SERVER', 'TIMEOUT', 'TRANSPORT', 'UNKNOWN']
 
 /** 与 settings.yaml 中其余 provider 的退避档位对齐（退避 1s→60s）；重试次数取 30 的 100 倍。 */
 const DEFAULT_POLICY = Object.freeze({

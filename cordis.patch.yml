@@ -26,6 +26,7 @@
           - SERVER
           - TIMEOUT
           - TRANSPORT
+          - UNKNOWN
         initialDelayMs: 1000
         maxDelayMs: 60000
         jitterRatio: 0.2
