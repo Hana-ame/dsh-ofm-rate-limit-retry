@@ -1,6 +1,6 @@
 {
   "meta": {
     "title": "OFM Rate-Limit Retry Patch",
-    "description": "Patches both dsh-our-free-model provider routes to retry RATE_LIMIT and UNKNOWN from the composition layer, without touching upstream bytes."
+    "description": "Patches the retry policy of both dsh-our-free-model routes and the codearts route to include RATE_LIMIT and UNKNOWN, without touching upstream bytes."
   }
 }

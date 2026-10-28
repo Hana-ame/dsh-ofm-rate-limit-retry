@@ -1,6 +1,6 @@
 {
   "meta": {
     "title": "OFM 限流重试补丁",
-    "description": "把 dsh-our-free-model 两条 provider 路线的重试策略改为包含 RATE_LIMIT 与 UNKNOWN，不改上游插件字节。"
+    "description": "把 dsh-our-free-model 两条 provider 路线与 codearts 路线的重试策略改为包含 RATE_LIMIT 与 UNKNOWN，不改上游插件字节。"
   }
 }

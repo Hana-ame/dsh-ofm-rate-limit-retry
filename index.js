@@ -51,10 +51,28 @@
  * 它通常瞬时（网关抖动、代理返回非标准错误体），因此纳入重试；代价是持续性的
  * 未知失败也会一直重试到 maxRetries 用尽（本配置约两天）。
  *
+ *
+ * ## codearts（2026-10-29 追加）
+ *
+ * 华为云 CodeArts 走的也是同一个坑，只是入口不同：ofm-huawei-codearts 的
+ * `channel-fetch.ts` 在环境代理不可达时抛 `ChannelNetworkError`（不是 HarnessError），
+ * 于是 `harnessErrorCode()` 兜底成 **UNKNOWN**——dsh 默认码表不含 UNKNOWN，
+ * 一次瞬时失败就直接终结整轮。
+ *
+ * 实证（本机 2026-10-29 03:56 CST）：Windows 侧代理重启约两分钟，两个会话的首轮
+ * 各失败一次，turn/end 的 `reason.error.code` 都是 `UNKNOWN`，报文
+ * 「渠道网络请求失败（环境代理；UND_ERR_CONNECT_TIMEOUT）」。约 10 秒的连接超时
+ * 正好是 undici 默认 connect timeout；代理恢复后同一请求即正常。若当时重试，
+ * 一两分钟后即可自愈。
+ *
+ * 把 `codearts` 并进 ROUTES 后，这条路线同样按 1s→60s 退避重试 UNKNOWN。
+ * 该适配器自身已把 429 归 RATE_LIMIT、SSE 断流归 TRANSPORT，UNKNOWN 主要就是
+ * 代理/网络瞬时失败，重试收益大、误伤小。
+ *
  * @module ofm-rate-limit-retry
  */
 
-const ROUTES = ['our-free-model', 'our-free-model-region']
+const ROUTES = ['our-free-model', 'our-free-model-region', 'codearts']
 
 /**
  * dsh 自身默认码表（dsh-llm/lib/index.js:251-257）+ UNKNOWN 兜底码。

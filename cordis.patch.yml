@@ -1,4 +1,4 @@
-# ofm-rate-limit-retry —— dsh-our-free-model 的 RATE_LIMIT 重试补丁
+# ofm-rate-limit-retry —— dsh-our-free-model 与 codearts 的重试策略补丁
 #
 # 为什么需要它：dsh 取 provider 重试策略时用
 #   adapter.providerRetryPolicy(p) ?? resolveRetryPolicy(...)
@@ -8,6 +8,9 @@
 # 于是该路线成为全机唯一「429 即停止」的 provider，且 settings.yaml 里给它配的
 # retryPolicy 被静默吞掉、无任何提示——而 dsh 自身的默认码表本来就包含 RATE_LIMIT
 # （同文件 251-257 行），其余所有 provider 的配置也都生效。
+#
+# 覆盖路线：our-free-model / our-free-model-region / codearts（2026-10-29 追加，
+# 原因：codearts 的 ChannelNetworkError 兜底成 UNKNOWN，不重试就会让代理抖动直接终结整轮）。
 #
 # 本补丁只改写注册项里的 retryPolicy 字段（策略在注册那一刻被快照，调用时直接读它，
 # 同文件 2217 行；代理 providerRetryPolicy() 无效——实测过）。不碰被补丁插件的字节，
