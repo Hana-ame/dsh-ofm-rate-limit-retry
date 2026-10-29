@@ -1,5 +1,5 @@
 {
-  "name": "ofm-rate-limit-retry",
+  "name": "dsh-ofm-rate-limit-retry",
   "version": "1.0.1",
   "private": true,
   "type": "module",

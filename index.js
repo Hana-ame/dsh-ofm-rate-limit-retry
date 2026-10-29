@@ -54,7 +54,7 @@
  *
  * ## codearts（2026-10-29 追加）
  *
- * 华为云 CodeArts 走的也是同一个坑，只是入口不同：ofm-huawei-codearts 的
+ * 华为云 CodeArts 走的也是同一个坑，只是入口不同：dsh-ofm-huawei-codearts 的
  * `channel-fetch.ts` 在环境代理不可达时抛 `ChannelNetworkError`（不是 HarnessError），
  * 于是 `harnessErrorCode()` 兜底成 **UNKNOWN**——dsh 默认码表不含 UNKNOWN，
  * 一次瞬时失败就直接终结整轮。
@@ -69,7 +69,7 @@
  * 该适配器自身已把 429 归 RATE_LIMIT、SSE 断流归 TRANSPORT，UNKNOWN 主要就是
  * 代理/网络瞬时失败，重试收益大、误伤小。
  *
- * @module ofm-rate-limit-retry
+ * @module dsh-ofm-rate-limit-retry
  */
 
 const ROUTES = ['our-free-model', 'our-free-model-region', 'codearts']
@@ -90,7 +90,7 @@ const DEFAULT_POLICY = Object.freeze({
   jitterRatio: 0.2,
 })
 
-export const name = 'ofm-rate-limit-retry'
+export const name = 'dsh-ofm-rate-limit-retry'
 export const inject = ['llm']
 
 export function apply(ctx, config = {}) {
@@ -121,7 +121,7 @@ export function apply(ctx, config = {}) {
   // ctx.llm 是注入的 mixin 视图、ctx.get('llm') 是服务实例，二者 adapters 是同一个 Map。
   const registry = ctx.llm?.adapters ?? ctx.get?.('llm')?.adapters
   if (!(registry instanceof Map)) {
-    ctx.logger.warn('ofm-rate-limit-retry: 未能取得 llm.adapters 注册表，本补丁不生效（dsh 内核结构变化？）')
+    ctx.logger.warn('dsh-ofm-rate-limit-retry: 未能取得 llm.adapters 注册表，本补丁不生效（dsh 内核结构变化？）')
     return
   }
 
@@ -136,7 +136,7 @@ export function apply(ctx, config = {}) {
       // 注册项的 retryPolicy 是注册那一刻的快照，调用时直接读它（dsh-llm/lib/index.js:2217），
       // 所以要生效只能改这个字段本身。
       registration.retryPolicy = policy
-      ctx.logger.info(`ofm-rate-limit-retry: "${provider}" 的重试策略已改为 ${policy.retryableCodes.join('/')}（maxRetries=${policy.maxRetries}）`)
+      ctx.logger.info(`dsh-ofm-rate-limit-retry: "${provider}" 的重试策略已改为 ${policy.retryableCodes.join('/')}（maxRetries=${policy.maxRetries}）`)
     }
   }
 
